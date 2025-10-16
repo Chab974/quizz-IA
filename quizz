@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz interactif sur l'intelligence artificielle</title>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #333;
+        min-height: 100vh;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .container {
+        width: 100%;
+        max-width: 800px;
+        background: #ffffff;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        border-radius: 20px;
+        padding: 40px;
+        position: relative;
+        overflow: hidden;
+        animation: slideIn 0.5s ease-out;
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .header h1 {
+        font-size: 28px;
+        color: #667eea;
+        margin-bottom: 10px;
+    }
+    
+    .progress-container {
+        margin-bottom: 30px;
+    }
+    
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: #e0e0e0;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 10px;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+        transition: width 0.5s ease;
+    }
+    
+    .progress-text {
+        text-align: center;
+        font-size: 14px;
+        color: #666;
+        font-weight: 500;
+    }
+    
+    .score-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: bold;
+        margin-left: 10px;
+    }
+    
+    .question-card {
+        animation: fadeIn 0.4s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    .question {
+        font-size: 22px;
+        margin-bottom: 30px;
+        font-weight: 600;
+        color: #2d3748;
+        line-height: 1.5;
+    }
+    
+    .options {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .options li {
+        margin: 12px 0;
+    }
+    
+    .options button {
+        width: 100%;
+        padding: 18px 24px;
+        font-size: 16px;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        background-color: #ffffff;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: left;
+        position: relative;
+        overflow: hidden;
+        font-weight: 500;
+    }
+    
+    .options button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+        transition: left 0.5s;
+    }
+    
+    .options button:hover:not(:disabled) {
+        border-color: #667eea;
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+    }
+    
+    .options button:hover:not(:disabled)::before {
+        left: 100%;
+    }
+    
+    .options button.correct {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        border-color: #38a169;
+        color: #fff;
+        animation: correctPulse 0.5s ease;
+    }
+    
+    @keyframes correctPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+    }
+    
+    .options button.wrong {
+        background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        border-color: #e53e3e;
+        color: #fff;
+        animation: shake 0.5s ease;
+    }
+    
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+    }
+    
+    .options button:disabled {
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+    
+    .explanation {
+        margin-top: 25px;
+        font-size: 16px;
+        line-height: 1.7;
+        display: none;
+        padding: 20px;
+        background: linear-gradient(135deg, #e6f2ff 0%, #f0e6ff 100%);
+        border-left: 5px solid #667eea;
+        border-radius: 10px;
+        animation: slideDown 0.4s ease-out;
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+        to {
+            opacity: 1;
+            max-height: 500px;
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
+    }
+    
+    .explanation-icon {
+        display: inline-block;
+        font-size: 20px;
+        margin-right: 8px;
+    }
+    
+    .button-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 30px;
+    }
+    
+    .next-button {
+        padding: 15px 40px;
+        font-size: 16px;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        cursor: pointer;
+        display: none;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .next-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+    
+    .next-button:active {
+        transform: translateY(0);
+    }
+    
+    .final-score-container {
+        text-align: center;
+        animation: fadeIn 0.6s ease-out;
+    }
+    
+    .final-score {
+        font-size: 48px;
+        font-weight: bold;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 20px;
+    }
+    
+    .score-message {
+        font-size: 20px;
+        color: #4a5568;
+        margin-bottom: 30px;
+    }
+    
+    .restart-button {
+        padding: 15px 40px;
+        font-size: 16px;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .restart-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+    
+    .confetti {
+        position: fixed;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        pointer-events: none;
+        animation: confetti-fall 3s ease-out forwards;
+        z-index: 9999;
+    }
+    
+    @keyframes confetti-fall {
+        0% { 
+            opacity: 1; 
+            transform: translateY(-100px) rotate(0deg); 
+        }
+        100% { 
+            opacity: 0; 
+            transform: translateY(calc(100vh + 100px)) rotate(720deg); 
+        }
+    }
+    
+    .feedback-icon {
+        font-size: 60px;
+        margin: 20px 0;
+        animation: bounceIn 0.6s ease-out;
+    }
+    
+    @keyframes bounceIn {
+        0% { transform: scale(0); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+    }
+    
+    @media (max-width: 600px) {
+        .container {
+            padding: 25px;
+        }
+        
+        .question {
+            font-size: 18px;
+        }
+        
+        .options button {
+            padding: 15px 20px;
+            font-size: 15px;
+        }
+        
+        .final-score {
+            font-size: 36px;
+        }
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🤖 Quiz sur l'Intelligence Artificielle</h1>
+    </div>
+    <div class="progress-container">
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+        <div class="progress-text"></div>
+    </div>
+    <div class="question-card">
+        <div class="question"></div>
+        <ul class="options"></ul>
+        <div class="explanation"></div>
+        <div class="button-container">
+            <button class="next-button">Question suivante →</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const quizData = [
+    {
+        question: "En 1950, Alan Turing pose une question fondamentale. Laquelle ?",
+        options: [
+            "Les machines peuvent-elles penser ?",
+            "Comment construire l'apprentissage profond ?",
+            "Qu'est-ce que l'IA ?",
+            "Les humains sont-ils dépassés ?"
+        ],
+        answer: 0,
+        explanation: "Alan Turing s'interrogeait sur la capacité des machines à penser. Il a imaginé un test où, si l'on ne distingue pas une conversation avec une machine d'un échange avec un humain, alors la machine peut être considérée comme intelligente."
+    },
+    {
+        question: "Quelle période est décrite comme l'ère conversationnelle où des modèles comme ChatGPT démocratisent l'IA ?",
+        options: [
+            "1950",
+            "1956-1970",
+            "2010-2020",
+            "2022-aujourd'hui"
+        ],
+        answer: 3,
+        explanation: "Depuis 2022, des modèles conversationnels comme ChatGPT rendent l'IA accessible à tous. C'est ce que le texte appelle l'ère conversationnelle."
+    },
+    {
+        question: "Que signifie l'affirmation « L'IA ne comprend pas. Elle corrèle » ?",
+        options: [
+            "L'IA saisit le sens profond",
+            "L'IA établit des corrélations sans compréhension du sens",
+            "L'IA reproduit les émotions humaines",
+            "L'IA résout tous les problèmes"
+        ],
+        answer: 1,
+        explanation: "L'IA repère des patterns et des associations dans des données massives mais elle n'a pas d'intention ni de compréhension sémantique comme un humain."
+    },
+    {
+        question: "Dans la métaphore du chef cuisinier, que représentent le fait de goûter et d'ajuster ?",
+        options: [
+            "Un apprentissage non supervisé",
+            "L'ajustement des paramètres après chaque test en fonction de l'écart avec l'objectif",
+            "Une recherche aléatoire",
+            "La collecte de données"
+        ],
+        answer: 1,
+        explanation: "Comme un chef qui goûte et modifie sa recette, un modèle ajuste ses paramètres après avoir comparé sa sortie à l'objectif. C'est le principe de la rétropropagation."
+    },
+    {
+        question: "Selon la métaphore du Rubik's Cube, comment l'IA résout-elle un problème ?",
+        options: [
+            "Elle comprend entièrement la mécanique du cube",
+            "Elle essaye des rotations, mémorise celles qui rapprochent de la solution et abandonne celles qui échouent",
+            "Elle calcule toutes les possibilités d'un coup",
+            "Elle n'a pas besoin d'entraînement"
+        ],
+        answer: 1,
+        explanation: "Comme pour un Rubik's Cube, l'IA explore différentes combinaisons, apprend de ses erreurs et retient les actions qui la rapprochent de la solution sans vraiment 'comprendre' le puzzle."
+    },
+    {
+        question: "Que sont les 'hallucinations' dans le contexte de l'IA ?",
+        options: [
+            "Des hallucinations visuelles",
+            "Quand l'IA invente des informations plausibles mais fausses pour combler des vides",
+            "Lorsque les humains interprètent mal les réponses",
+            "Des échecs d'entraînement"
+        ],
+        answer: 1,
+        explanation: "Lorsqu'un modèle n'a pas d'information précise, il peut générer des réponses plausibles mais erronées. Il ne ment pas volontairement, il improvise en comblant des vides."
+    },
+    {
+        question: "Pourquoi l'IA peut-elle reproduire des biais sociétaux ?",
+        options: [
+            "Parce qu'elle discrimine intentionnellement",
+            "Parce que des données d'entraînement biaisées conduisent l'IA à amplifier ces biais",
+            "Parce qu'elle est malveillante",
+            "Parce qu'elle est complètement transparente"
+        ],
+        answer: 1,
+        explanation: "L'IA apprend à partir de données humaines. Si ces données sont biaisées (par exemple associant certains métiers à un genre), elle reproduira et amplifie ces préjugés."
+    },
+    {
+        question: "Que sont les 'deepfakes' selon le document ?",
+        options: [
+            "Des traductions instantanées",
+            "Des vidéos ou voix hyperréalistes de personnes disant des choses qu'elles n'ont jamais dites",
+            "Des hallucinations de l'IA",
+            "Des piratages de données"
+        ],
+        answer: 1,
+        explanation: "Les deepfakes désignent des contenus audio ou vidéo générés par l'IA qui imitent de façon réaliste une personne et peuvent être utilisés pour tromper ou manipuler l'opinion."
+    },
+    {
+        question: "Quel conseil ne fait PAS partie des trois recommandations pour votre sécurité numérique ?",
+        options: [
+            "Protégez vos données personnelles",
+            "Vérifiez les sources",
+            "Exigez la transparence",
+            "Partagez vos mots de passe pour personnaliser l'IA"
+        ],
+        answer: 3,
+        explanation: "Le document conseille de protéger ses données, de vérifier les sources et d'exiger la transparence. Partager ses mots de passe est au contraire à proscrire."
+    },
+    {
+        question: "Quel est l'avantage d'activer la mémoire de ChatGPT ?",
+        options: [
+            "L'IA oublie les conversations précédentes",
+            "Elle se souvient de vos préférences et de votre style, améliorant les échanges futurs",
+            "Elle empêche tous les biais",
+            "Elle augmente la vitesse de traitement"
+        ],
+        answer: 1,
+        explanation: "L'activation de la mémoire permet à l'assistant de retenir vos informations (professions, préférences) afin d'adapter ses réponses sans que vous ayez à vous répéter."
+    },
+    {
+        question: "Comment les instructions personnalisées vous aident-elles ?",
+        options: [
+            "En définissant le ton, la longueur des réponses, etc., pour aligner l'IA sur vos préférences",
+            "En limitant l'IA",
+            "En évitant toute erreur",
+            "Elles sont inutiles"
+        ],
+        answer: 0,
+        explanation: "Les instructions personnalisées indiquent une fois pour toutes la manière dont vous souhaitez recevoir les réponses (ton formel ou décontracté, longueur, précision). Elles servent de guide à l'IA."
+    },
+    {
+        question: "À quoi sont comparés les GPTs spécialisés ?",
+        options: [
+            "À des véhicules adaptés à des terrains spécifiques",
+            "À des outils aléatoires",
+            "À des doublons inutiles",
+            "À une limite pour la créativité"
+        ],
+        answer: 0,
+        explanation: "Le texte compare les GPTs dédiés (rédaction, traduction, coaching, etc.) à des véhicules adaptés : un 4×4 pour la montagne, un cabriolet pour la côte. Chacun répond à un usage particulier."
+    },
+    {
+        question: "Selon le document, qu'est-ce qui compte davantage que de disposer du modèle le plus puissant ?",
+        options: [
+            "Le nombre de prompts",
+            "La préparation, la stratégie et la cohérence de votre écosystème d'outils",
+            "Un matériel coûteux",
+            "Le hasard des résultats"
+        ],
+        answer: 1,
+        explanation: "La cohérence de votre environnement, votre méthode et votre maîtrise priment sur la puissance brute : mieux vaut un bon pilote qu'un moteur de fusée."
+    },
+    {
+        question: "Qu'est-ce qui caractérise un prompt de qualité ?",
+        options: [
+            "Il est court et ambigu",
+            "Il fournit un rôle, un contexte, une tâche, un format et un ton clairs, conduisant à des réponses ciblées",
+            "Il utilise des mots compliqués",
+            "Il vise à tromper l'IA"
+        ],
+        answer: 1,
+        explanation: "Un bon prompt précise le rôle de l'IA, le contexte, la tâche à accomplir, le format souhaité et le ton. Plus votre demande est claire, plus la réponse est pertinente."
+    },
+    {
+        question: "Qu'est-ce qui rend l'IA unique comme partenaire d'apprentissage ?",
+        options: [
+            "Elle peut adapter ses explications à votre niveau et ne se lasse jamais de vos questions répétées",
+            "Elle facture chaque réponse",
+            "Elle limite les sujets abordables",
+            "Elle ne répond qu'une fois"
+        ],
+        answer: 0,
+        explanation: "L'IA transforme l'apprentissage en dialogue. Elle peut répéter et varier ses explications autant de fois que nécessaire, adapter la difficulté et répondre à votre curiosité sans juger."
+    },
+    {
+        question: "Comment l'IA agit-elle comme mentor grâce à la synthèse intelligente et la vulgarisation sur mesure ?",
+        options: [
+            "Elle extrait les idées clés de documents complexes et adapte la complexité des explications à vos besoins",
+            "Elle fournit uniquement des faits simples",
+            "Elle résout seulement des problèmes mathématiques",
+            "Elle ne s'adapte pas à votre niveau"
+        ],
+        answer: 0,
+        explanation: "L'IA peut condenser un rapport ou un livre et mettre en évidence l'essentiel. Elle sait également expliquer un sujet de plusieurs façons, ajustant la profondeur et le vocabulaire selon votre demande."
+    },
+    {
+        question: "Quel exemple illustre l'utilisation de l'IA comme copilote numérique au quotidien ?",
+        options: [
+            "Organiser votre semaine en bloquant du temps pour vos priorités et laisser des plages libres",
+            "Repeindre votre maison",
+            "Faire des pompes",
+            "Conduire une voiture"
+        ],
+        answer: 0,
+        explanation: "En tant qu'assistant personnel, l'IA peut planifier votre agenda en allouant du temps à vos priorités tout en prévoyant des marges pour l'imprévu."
+    },
+    {
+        question: "Quelles sont les trois capacités humaines uniques mises en avant ?",
+        options: [
+            "Vitesse, mémoire et puissance de calcul",
+            "Création, intelligence émotionnelle et jugement éthique",
+            "Stockage de données, reconnaissance de motifs, efficacité énergétique",
+            "Aucune"
+        ],
+        answer: 1,
+        explanation: "Le texte souligne que notre valeur réside dans des aptitudes que la machine ne maîtrise pas : la créativité véritable, l'empathie et la capacité à prendre des décisions morales."
+    },
+    {
+        question: "Que souligne le texte au sujet de la consommation énergétique de l'IA ?",
+        options: [
+            "L'entraînement des modèles consomme une énergie négligeable",
+            "La consommation de GPT-4 équivaut à celle de 130 000 foyers et chaque requête a un coût ; nous devons utiliser l'IA de manière raisonnée",
+            "L'IA fonctionne grâce à la magie",
+            "L'IA réduit la consommation énergétique mondiale"
+        ],
+        answer: 1,
+        explanation: "Former un grand modèle de langage nécessite énormément d'électricité et chaque utilisation ajoute sa goutte d'énergie. Il est donc judicieux de réserver l'IA à des tâches qui en valent le coût."
+    },
+    {
+        question: "Selon la présentation, quelle région affiche le taux d'adoption de l'IA le plus élevé ?",
+        options: [
+            "L'Europe",
+            "L'Inde",
+            "La Chine",
+            "La France"
+        ],
+        answer: 2,
+        explanation: "La Chine affiche le taux d'adoption le plus élevé avec une intégration massive de l'IA dans l'administration, l'éducation et les services publics."
+    },
+    {
+        question: "Quelle est, selon le document, la force de la France et de l'Europe en matière d'IA ?",
+        options: [
+            "La taille de la population et l'investissement massif",
+            "L'agilité, la créativité et l'aptitude à conjuguer innovation et éthique",
+            "Copier les stratégies d'autres pays",
+            "Éviter la régulation"
+        ],
+        answer: 1,
+        explanation: "Le texte explique que la France ne peut rivaliser en taille mais dispose d'atouts comme l'agilité, la créativité et une capacité à réguler intelligemment en conciliant performance et valeurs humaines."
+    },
+    {
+        question: "Quelle approche de régulation de l'IA est proposée ?",
+        options: [
+            "Interdire complètement l'IA",
+            "Appliquer des règles strictes identiques pour tous les usages",
+            "Établir des règles proportionnées selon le risque, encourager la transparence et l'innovation, comme des feux rouges qui organisent plutôt que des chaînes qui bloquent",
+            "Laisser les entreprises faire ce qu'elles veulent"
+        ],
+        answer: 2,
+        explanation: "La régulation idéale vise à protéger sans freiner l'innovation : elle classe les usages selon leur niveau de risque, impose des obligations graduées, exige de la transparence et crée un cadre stable pour encourager les initiatives."
+    },
+    {
+        question: "Dans la vision d'avenir, que se passe-t-il entre 2028 et 2030 ?",
+        options: [
+            "Spécialisation des IA",
+            "Intégration : l'IA devient invisible et intégrée partout",
+            "Coévolution : humains et IA co-créent de nouvelles façons de vivre",
+            "Démocratisation : l'IA devient accessible à tous"
+        ],
+        answer: 1,
+        explanation: "La période 2028-2030 est décrite comme celle de l'intégration : l'IA sera omniprésente et nous n'aurons plus l'impression de 'l'utiliser', un peu comme Internet aujourd'hui."
+    },
+    {
+        question: "Selon la conclusion, quelle est la clé du futur ?",
+        options: [
+            "Laisser l'IA conduire seule",
+            "Conjuguer puissance et prudence, innovation et humanité ; l'humain reste le conducteur et doit apprendre à maîtriser l'IA",
+            "Abandonner la créativité au profit de l'automatisation",
+            "Se passer totalement de technologie"
+        ],
+        answer: 1,
+        explanation: "Le message final rappelle que l'IA est un outil à maîtriser. L'avenir appartient à ceux qui sauront associer puissance et prudence, innovation et respect de l'humain, en conservant le volant."
+    }
+];
+
+let currentQuestion = 0;
+let score = 0;
+
+function updateProgress() {
+    const progress = ((currentQuestion) / quizData.length) * 100;
+    document.querySelector('.progress-fill').style.width = progress + '%';
+    document.querySelector('.progress-text').innerHTML = 
+        `Question ${currentQuestion + 1}/${quizData.length} <span class="score-badge">Score: ${score}</span>`;
+}
+
+function showQuestion() {
+    const q = quizData[currentQuestion];
+    updateProgress();
+    
+    document.querySelector('.question').textContent = q.question;
+    const optionsList = document.querySelector('.options');
+    optionsList.innerHTML = '';
+    
+    q.options.forEach((opt, idx) => {
+        const li = document.createElement('li');
+        const button = document.createElement('button');
+        button.textContent = opt;
+        button.addEventListener('click', () => selectOption(idx));
+        li.appendChild(button);
+        optionsList.appendChild(li);
+    });
+    
+    document.querySelector('.explanation').style.display = 'none';
+    const nextBtn = document.querySelector('.next-button');
+    nextBtn.style.display = 'none';
+    nextBtn.textContent = currentQuestion < quizData.length - 1 ? 'Question suivante →' : 'Voir le résultat 🎉';
+}
+
+function selectOption(index) {
+    const explanationDiv = document.querySelector('.explanation');
+    if (explanationDiv.style.display === 'block') {
+        return;
+    }
+    
+    const q = quizData[currentQuestion];
+    const optionButtons = document.querySelectorAll('.options button');
+    
+    optionButtons.forEach((btn, idx) => {
+        btn.disabled = true;
+        if (idx === q.answer) {
+            btn.classList.add('correct');
+        }
+        if (idx === index && idx !== q.answer) {
+            btn.classList.add('wrong');
+        }
+    });
+    
+    if (index === q.answer) {
+        score++;
+        showConfetti();
+        updateProgress();
+    }
+    
+    explanationDiv.style.display = 'block';
+    const icon = index === q.answer ? '✅' : 'ℹ️';
+    explanationDiv.innerHTML = `<span class="explanation-icon">${icon}</span>${q.explanation}`;
+    
+    document.querySelector('.next-button').style.display = 'block';
+}
+
+function showConfetti() {
+    for (let i = 0; i < 30; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.classList.add('confetti');
+            confetti.style.left = Math.random() * window.innerWidth + 'px';
+            confetti.style.top = Math.random() * -100 + 'px';
+            confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 60%)`;
+            document.body.appendChild(confetti);
+            setTimeout(() => confetti.remove(), 3000);
+        }, i * 30);
+    }
+}
+
+function getScoreMessage(score, total) {
+    const percentage = (score / total) * 100;
+    
+    if (percentage === 100) {
+        return { icon: '🏆', message: 'Parfait ! Vous êtes un expert en IA !', color: '#FFD700' };
+    } else if (percentage >= 80) {
+        return { icon: '🌟', message: 'Excellent ! Vous maîtrisez très bien le sujet !', color: '#48bb78' };
+    } else if (percentage >= 60) {
+        return { icon: '👍', message: 'Bien joué ! Vous avez de bonnes connaissances.', color: '#667eea' };
+    } else if (percentage >= 40) {
+        return { icon: '📚', message: 'Pas mal ! Il y a encore des choses à apprendre.', color: '#f6ad55' };
+    } else {
+        return { icon: '💪', message: 'Courage ! Réessayez pour progresser.', color: '#f56565' };
+    }
+}
+
+function showResults() {
+    const container = document.querySelector('.container');
+    const scoreInfo = getScoreMessage(score, quizData.length);
+    const percentage = Math.round((score / quizData.length) * 100);
+    
+    showConfetti();
+    
+    container.innerHTML = `
+        <div class="final-score-container">
+            <div class="feedback-icon">${scoreInfo.icon}</div>
+            <div class="final-score">Score : ${score}/${quizData.length}</div>
+            <div class="progress-bar" style="margin: 20px auto; max-width: 400px;">
+                <div class="progress-fill" style="width: ${percentage}%; background: linear-gradient(90deg, ${scoreInfo.color} 0%, ${scoreInfo.color} 100%);"></div>
+            </div>
+            <div class="score-message">${scoreInfo.message}</div>
+            <p style="font-size:16px; color: #718096; margin: 30px 0; line-height: 1.6;">
+                Merci d'avoir participé à ce quiz sur l'intelligence artificielle ! 
+                Vous avez maintenant une meilleure compréhension des enjeux et des possibilités de l'IA.
+            </p>
+            <button class="restart-button" onclick="location.reload()">
+                🔄 Recommencer le quiz
+            </button>
+        </div>
+    `;
+}
+
+const nextButton = document.querySelector('.next-button');
+nextButton.addEventListener('click', () => {
+    currentQuestion++;
+    if (currentQuestion < quizData.length) {
+        showQuestion();
+    } else {
+        showResults();
+    }
+});
+
+showQuestion();
+</script>
+</body>
+</html>
