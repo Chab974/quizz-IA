@@ -34,7 +34,7 @@ Chaque question est accompagnée d’explications pédagogiques et d’animation
 Le quiz est hébergé gratuitement sur **GitHub Pages**.
 
 **➡️ Accédez au quiz ici :**  
-👉 [https://USERNAME.github.io/quiz-ia](https://USERNAME.github.io/quiz-ia)
+👉 [https://USERNAME.github.io/quiz-ia](https://Chab974.github.io/quiz-ia)
 
 *(Remplace `USERNAME` par ton nom d’utilisateur GitHub)*
 
